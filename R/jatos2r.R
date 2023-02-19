@@ -12,27 +12,24 @@ jatos2r = function(
                   data = "dat.txt",
                   filename = c("dat1.rds", "dat1.csv",
                                "backGr.rds", "backGr.csv"),
-                  trial_name = c('dotMaskTrial',
-                                 'dotMaskTrial',
-                                 'dotMaskTrial',
-                                 'dotMaskTrial',
-                                 'textResponse',
-                                 'textResponse',
-                                 'multipleChoice'),
+                  trial_name = c('dotmaskTrial',
+                                 'dotmaskTrial',
+                                 'dotmaskTrial',
+                                 'dotmaskTrial',
+                                 'dotmaskTrial',
+                                 'dotmaskTrial'),
                    col_name = c('workerID',
                                'numerosity',
                                'imageNumber',
                                'numGroups',
                                'response',
-                               'rt',
-                               'response'),
+                               'rt'),
                    type = c("character",
                            "integer",
                            "character",
                            "integer",
                            "integer",
-                           "integer",
-                           "character"),
+                           "integer"),
                   output_raw = TRUE,
                   output_clean = TRUE,
                   output_background = TRUE)
@@ -73,7 +70,7 @@ if (output_background == TRUE) {
     workerDF = dplyr::filter(df, workerID == workers[i])
 
     # get workerID
-    backgrDF[i,1] = workers[i]
+    backgrDF[i,1] = unlist(workers[i])
 
     # get age
     age1 = dplyr::filter(workerDF, trialName == "age")$response
@@ -82,19 +79,21 @@ if (output_background == TRUE) {
 
     # get gender
     gender1 = dplyr::filter(workerDF, trialName == "gender")$response
+    gender1 = unlist(gender1)
     backgrDF[i,3] = gender1
 
     # get OS
     os1 = dplyr::filter(workerDF, trialName == "browserCheck")$os
+    os1 = unlist(os1)
     backgrDF[i,4] = os1
 
     # get browser
     browser1 = dplyr::filter(workerDF, trialName == "browserCheck")$browser
+    browser1 = unlist(browser1)
     backgrDF[i,5] = browser1
 
     # get avg frame time
-    frameTime1 = dplyr::filter(workerDF, trialName == "dotMaskTrial")$avg_frame_time[1]
-    frameTime1 = unlist(frameTime1)
+    frameTime1 = mean(workerDF$avg_frame_time, na.rm = TRUE)
     backgrDF[i,6] = frameTime1
 
     # get strategies
@@ -108,7 +107,6 @@ if (output_background == TRUE) {
     backgrDF[i,8] = feedback1
 
   }
-
   saveRDS(backgrDF, filename[3])
   write.csv(backgrDF, file = filename[4], row.names = FALSE)
 }
