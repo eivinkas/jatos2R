@@ -5,3 +5,5 @@ Version: 0.1.0
 Author: Eivind Kaspersen
 Maintainer: Eivind Kaspersen <eivind.kaspersen@ntnu.no>
 Description: The output from JATOS are non-standard JSON files.
+RoxygenNote: 7.2.1
+Encoding: UTF-8

@@ -1,3 +1,13 @@
+#' Convert from JATOS.txt to .rds and .csv.
+#'
+#' @param data String: The PATH of the .txt data file
+#' @param filename Vector/character: Filenames of the .rds and .csv output files
+#' @param trial_name Vector/character: The trial names to use
+#' @param col_name Vector/character: The columns to use.
+#' @param type Vector/character: The type (e.g., 'character'/'integer')
+#' @return raw_data.rds, raw_data.csv, data.rds, data.csv
+#' @export
+
 jatos2r = function(
                   data = "R/testDat.txt",
 
