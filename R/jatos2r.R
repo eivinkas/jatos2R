@@ -120,12 +120,14 @@ saveRDS(df, paste("raw_", filename[1], sep = ""))
 # Get new DF
 col1 = dplyr::filter(df, trialName == trial_name[1])
 col1 = col1[,colnames(col1) == col_name[1]]
+col1 = lapply(col1, function(y) y[[1]])
 col1 = unlist(col1)
 newDF = data.frame(col1)
 
 for (i in 2:length(col_name)) {
   newCol = col1 = dplyr::filter(df, trialName == trial_name[i])
   newCol = col1[,colnames(newCol) == col_name[i]]
+  newCol = lapply(newCol, function(y) y[[1]])
   newCol = unlist(newCol)
   newDF = cbind(newDF, newCol)
 }
