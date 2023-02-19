@@ -4,12 +4,4 @@ Title: Converts and saves data from JATOS to CSV
 Version: 0.1.0
 Author: Eivind Kaspersen
 Maintainer: Eivind Kaspersen <eivind.kaspersen@ntnu.no>
-Description: The output from JATOS are non-standard JSON files. Often, the rows 
-
-## Usage
-jatos2csv(data, filename, trial_name, col_name)
-
-## Arguments
-- `data`: data on .txt format as downloaded from JATOS.
-- `filename`: filname of output data: [1] R-format, [2] CSV-format.
-
+Description: The output from JATOS are non-standard JSON files.
