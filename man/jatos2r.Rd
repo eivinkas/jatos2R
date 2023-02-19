@@ -28,7 +28,18 @@ jatos2r(
 }
 \value{
 raw_data.rds, raw_data.csv, data.rds, data.csv
+
+Example:
+
+Every line in the new data should include (1) the 'dotMaskTrial'-'workerID',
+(2) the 'dotMaskTrial'-'numerosity', and (3) the 'textResponse'-'response'
 }
 \description{
 Convert from JATOS.txt to .rds and .csv.
+}
+\examples{
+jatos2r(data = "R/testDat.txt", filename = c("dat1.rds", "dat1.csv"),
+trial_name = c('dotMaskTrial', 'dotMaskTrial','dotMaskTrial','textResponse'),
+col_name= c('workerID','numerosity','response'),
+type = c("character","integer","integer"))
 }
