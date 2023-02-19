@@ -10,15 +10,8 @@
 
 jatos2r = function(
                   data = "dat.txt",
-
-                  output_raw = TRUE,
-
-                  output_clean = TRUE,
-
-                  output_background = TRUE,
-
-                  filename = c("dat1.rds", "dat1.csv"),
-
+                  filename = c("dat1.rds", "dat1.csv",
+                               "backGr.rds", "backGr.csv"),
                   trial_name = c('dotMaskTrial',
                                  'dotMaskTrial',
                                  'dotMaskTrial',
@@ -26,22 +19,23 @@ jatos2r = function(
                                  'textResponse',
                                  'textResponse',
                                  'multipleChoice'),
-
-                   col_name= c('workerID',
+                   col_name = c('workerID',
                                'numerosity',
                                'imageNumber',
                                'numGroups',
                                'response',
                                'rt',
                                'response'),
-
-                  type = c("character",
+                   type = c("character",
                            "integer",
                            "character",
                            "integer",
                            "integer",
                            "integer",
-                           "character"))
+                           "character"),
+                  output_raw = TRUE,
+                  output_clean = TRUE,
+                  output_background = TRUE)
 
 {
 
@@ -54,6 +48,70 @@ text_data <- paste0(text_data, collapse = "")
 new_data <- gsub("][", ",", text_data, fixed = TRUE)
 json_data <- fromJSON(new_data)
 df <- as.data.frame(json_data)
+
+# Make background data
+if (output_background == TRUE) {
+  backgrDF = data.frame(workerID = 0,
+                        age = 0,
+                        gender = 0,
+                        os = 0,
+                        browser = 0,
+                        avg_frame_time = 0,
+                        strategies = 0,
+                        feedback = 0
+                        )
+  # Get worker IDs
+  workers = unique(df$workerID)
+  workers = workers[!is.na(workers)]
+  workers = workers[workers != "0"]
+
+  for (i in 1:length(workers)) {
+
+    if (i>1) backgrDF = rbind(backgrDF, rep(0, 8))
+
+
+    workerDF = dplyr::filter(df, workerID == workers[i])
+
+    # get workerID
+    backgrDF[i,1] = workers[i]
+
+    # get age
+    age1 = dplyr::filter(workerDF, trialName == "age")$response
+    age1 = as.numeric(unlist(age1))
+    backgrDF[i,2] = age1
+
+    # get gender
+    gender1 = dplyr::filter(workerDF, trialName == "gender")$response
+    backgrDF[i,3] = gender1
+
+    # get OS
+    os1 = dplyr::filter(workerDF, trialName == "browserCheck")$os
+    backgrDF[i,4] = os1
+
+    # get browser
+    browser1 = dplyr::filter(workerDF, trialName == "browserCheck")$browser
+    backgrDF[i,5] = browser1
+
+    # get avg frame time
+    frameTime1 = dplyr::filter(workerDF, trialName == "dotMaskTrial")$avg_frame_time[1]
+    frameTime1 = unlist(frameTime1)
+    backgrDF[i,6] = frameTime1
+
+    # get strategies
+    strat1 = dplyr::filter(workerDF, trialName == "responseStrategies")$response
+    strat1 = unlist(strat1)
+    backgrDF[i,7] = strat1
+
+    # get feedback
+    feedback1 = dplyr::filter(workerDF, trialName == "feedback")$response
+    feedback1 = unlist(feedback1)
+    backgrDF[i,8] = feedback1
+
+  }
+
+  saveRDS(backgrDF, filename[3])
+  write.csv(backgrDF, file = filename[4], row.names = FALSE)
+}
 
 # Save raw data
 if (output_raw == TRUE){
@@ -76,7 +134,7 @@ for (i in 2:length(col_name)) {
 colnames(newDF) = col_name
 
 # Set correct class
-for (i in 1:length(newDF[,1])) {
+for (i in 1:length(newDF[1,])) {
   newDF[,i] = as(newDF[,i], type[i])
 }
 
