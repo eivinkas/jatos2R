@@ -5,7 +5,10 @@
 \title{Convert from JATOS.txt to .rds and .csv.}
 \usage{
 jatos2r(
-  data = "R/testDat.txt",
+  data = "dat.txt",
+  output_raw = TRUE,
+  output_clean = TRUE,
+  output_background = TRUE,
   filename = c("dat1.rds", "dat1.csv"),
   trial_name = c("dotMaskTrial", "dotMaskTrial", "dotMaskTrial", "dotMaskTrial",
     "textResponse", "textResponse", "multipleChoice"),
@@ -18,28 +21,17 @@ jatos2r(
 \arguments{
 \item{data}{String: The PATH of the .txt data file}
 
-\item{filename}{Vector/character: Filenames of the .rds and .csv output files}
+\item{filename}{Vector/character}
 
-\item{trial_name}{Vector/character: The trial names to use}
+\item{trial_name}{Vector/character}
 
-\item{col_name}{Vector/character: The columns to use.}
+\item{col_name}{Vector/character}
 
-\item{type}{Vector/character: The type (e.g., 'character'/'integer')}
+\item{type}{Vector/character}
 }
 \value{
 raw_data.rds, raw_data.csv, data.rds, data.csv
-
-Example:
-
-Every line in the new data should include (1) the 'dotMaskTrial'-'workerID',
-(2) the 'dotMaskTrial'-'numerosity', and (3) the 'textResponse'-'response'
 }
 \description{
 Convert from JATOS.txt to .rds and .csv.
-}
-\examples{
-jatos2r(data = "R/testDat.txt", filename = c("dat1.rds", "dat1.csv"),
-trial_name = c('dotMaskTrial', 'dotMaskTrial','dotMaskTrial','textResponse'),
-col_name= c('workerID','numerosity','response'),
-type = c("character","integer","integer"))
 }

@@ -1,26 +1,21 @@
 #' Convert from JATOS.txt to .rds and .csv.
-#'
 #' @param data String: The PATH of the .txt data file
-#' @param filename Vector/character: Filenames of the .rds and .csv output files
-#' @param trial_name Vector/character: The trial names to use
-#' @param col_name Vector/character: The columns to use.
-#' @param type Vector/character: The type (e.g., 'character'/'integer')
+#' @param filename Vector/character
+#' @param trial_name Vector/character
+#' @param col_name Vector/character
+#' @param type Vector/character
 #' @return raw_data.rds, raw_data.csv, data.rds, data.csv
 #'
-#' Example:
-#'
-#' Every line in the new data should include (1) the 'dotMaskTrial'-'workerID',
-#' (2) the 'dotMaskTrial'-'numerosity', and (3) the 'textResponse'-'response'
-#'
-#'@examples
-#'jatos2r(data = "R/testDat.txt", filename = c("dat1.rds", "dat1.csv"),
-#'trial_name = c('dotMaskTrial', 'dotMaskTrial','dotMaskTrial','textResponse'),
-#'col_name= c('workerID','numerosity','response'),
-#'type = c("character","integer","integer"))
-#'@export
+#' @export
 
 jatos2r = function(
-                  data = "R/testDat.txt",
+                  data = "dat.txt",
+
+                  output_raw = TRUE,
+
+                  output_clean = TRUE,
+
+                  output_background = TRUE,
 
                   filename = c("dat1.rds", "dat1.csv"),
 
@@ -61,8 +56,10 @@ json_data <- fromJSON(new_data)
 df <- as.data.frame(json_data)
 
 # Save raw data
+if (output_raw == TRUE){
 write.csv(df, file = paste("raw_", filename[2], sep = ""), row.names = FALSE)
 saveRDS(df, paste("raw_", filename[1], sep = ""))
+}
 
 # Get new DF
 col1 = dplyr::filter(df, trialName == trial_name[1])
@@ -84,7 +81,9 @@ for (i in 1:length(newDF[,1])) {
 }
 
 # Save new df
+if (output_clean == TRUE) {
 write.csv(newDF, file = filename[2], row.names = FALSE)
 saveRDS(newDF, filename[1])
+}
 
 }
