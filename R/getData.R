@@ -1,4 +1,4 @@
-getData = function(
+jatos2csv = function(
                   data = "R/testDat.txt",
 
                   filename = c("dat1.rds", "dat1.csv"),
