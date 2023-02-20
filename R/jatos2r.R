@@ -155,4 +155,6 @@ write.csv(newDF, file = filename[2], row.names = FALSE)
 saveRDS(newDF, filename[1])
 }
 
+return(newDF)
+
 }
