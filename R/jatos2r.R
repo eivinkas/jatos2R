@@ -12,33 +12,18 @@ jatos2r = function(
                   data = "dat.txt",
                   filename = c("dat1.rds", "dat1.csv",
                                "backGr.rds", "backGr.csv"),
-                  trial_name = c('dotmaskTrial',
-                                 'dotmaskTrial',
-                                 'dotmaskTrial',
-                                 'dotmaskTrial',
-                                 'dotmaskTrial',
-                                 'dotmaskTrial'),
-                   col_name = c('workerID',
-                               'numerosity',
-                               'imageNumber',
-                               'numGroups',
-                               'response',
-                               'rt'),
-                   type = c("character",
-                           "integer",
-                           "character",
-                           "integer",
-                           "integer",
-                           "integer"),
-                  config = c("inputStart", "stimulusDuration"),
-                  output_raw = TRUE,
-                  output_clean = TRUE,
-                  output_background = TRUE)
+                  filterCol = NULL,
+                  filterID = NULL,
+                  getCol = NULL,
+                  output_raw = FALSE,
+                  output_clean = FALSE,
+                  output_background = FALSE)
 
 {
 
 library(jsonlite)
 library(dplyr)
+library(tidyr)
 
 # Make raw data frame
 text_data <- readLines(data, warn = FALSE)
@@ -47,106 +32,62 @@ new_data <- gsub("][", ",", text_data, fixed = TRUE)
 json_data <- fromJSON(new_data)
 df <- as.data.frame(json_data)
 
-# Make background data
-if (output_background == TRUE) {
-  backgrDF = data.frame(workerID = 0,
-                        age = 0,
-                        gender = 0,
-                        os = 0,
-                        browser = 0,
-                        avg_frame_time = 0,
-                        strategies = 0,
-                        feedback = 0
-                        )
-  # Get worker IDs
-  workers = unique(df$workerID)
-  workers = workers[!is.na(workers)]
-  workers = workers[workers != "0"]
-
-  for (i in 1:length(workers)) {
-
-    if (i>1) backgrDF = rbind(backgrDF, rep(0, 8))
-
-
-    workerDF = dplyr::filter(df, workerID == workers[i])
-
-    # get workerID
-    backgrDF[i,1] = unlist(workers[i])
-
-    # get age
-    age1 = dplyr::filter(workerDF, trialName == "age")$response
-    age1 = as.numeric(unlist(age1))
-    backgrDF[i,2] = age1
-
-    # get gender
-    gender1 = dplyr::filter(workerDF, trialName == "gender")$response
-    gender1 = unlist(gender1)
-    backgrDF[i,3] = gender1
-
-    # get OS
-    os1 = dplyr::filter(workerDF, trialName == "browserCheck")$os
-    os1 = unlist(os1)
-    backgrDF[i,4] = os1
-
-    # get browser
-    browser1 = dplyr::filter(workerDF, trialName == "browserCheck")$browser
-    browser1 = unlist(browser1)
-    backgrDF[i,5] = browser1
-
-    # get avg frame time
-    frameTime1 = mean(workerDF$avg_frame_time, na.rm = TRUE)
-    backgrDF[i,6] = frameTime1
-
-    # get strategies
-    strat1 = dplyr::filter(workerDF, trialName == "responseStrategies")$response
-    strat1 = unlist(strat1)
-    backgrDF[i,7] = strat1
-
-    # get feedback
-    feedback1 = dplyr::filter(workerDF, trialName == "feedback")$response
-    feedback1 = unlist(feedback1)
-    backgrDF[i,8] = feedback1
-
-  }
-  saveRDS(backgrDF, filename[3])
-  write.csv(backgrDF, file = filename[4], row.names = FALSE)
-}
-
 # Save raw data
 if (output_raw == TRUE){
-write.csv(df, file = paste("raw_", filename[2], sep = ""), row.names = FALSE)
-saveRDS(df, paste("raw_", filename[1], sep = ""))
+  write.csv(df, file = paste("raw_", filename[2], sep = ""), row.names = FALSE)
+  saveRDS(df, paste("raw_", filename[1], sep = ""))
 }
+
+# Get worker IDs
+workers = unique(df$workerID)
+workers = workers[!is.na(workers)]
+workers = workers[workers != "0"]
+
+# Get col names
+columnID = 'trialName'
+
+# Get trial Names
+trial_name = unique(df[[columnID[1]]])
+trial_name = trial_name[!is.na(trial_name)]
+
+# Check if data is 1 per workerID
+singleDat = NULL
+workerDF = dplyr::filter(df, workerID == workers[1])
+for (i in 1:length(trial_name)) {
+  testForSingle = length(dplyr::filter(workerDF, trialName == trial_name[i])[,1])
+  if (testForSingle == 1) {
+    singleDat = c(singleDat, 1)
+  } else {singleDat = c(singleDat, 0)
+    }
+}
+
+# DF for repeating responses
+trial_name_repeat = trial_name[singleDat == 0]
+
+# DF for single responses
+trial_name_single = trial_name[singleDat == 1]
 
 # Get new DF
-col1 = dplyr::filter(df, trialName == trial_name[1])
-col1 = col1[,colnames(col1) == col_name[1]]
-col1 = lapply(col1, function(y) y[[1]])
-col1 = unlist(col1)
-newDF = data.frame(col1)
+col1 = dplyr::filter(df, trialName == trial_name_repeat[1])
+col1 <- col1[, !sapply(col1, function(x) all(is.na(x) | is.null(x) | (is.list(x) && length(x) == 0)))]
 
-for (i in 2:length(col_name)) {
-  newCol = col1 = dplyr::filter(df, trialName == trial_name[i])
-  newCol = col1[,colnames(newCol) == col_name[i]]
-  newCol = lapply(newCol, function(y) y[[1]])
-  newCol = unlist(newCol)
-  newDF = cbind(newDF, newCol)
-}
-colnames(newDF) = col_name
+# Unlist config
+col1 = col1[,colnames(col1) != 'config']
+newDF = data.frame(col1)
+col1 = dplyr::filter(df, plugin == 'store_config_data')
+col1 = col1[rep(row.names(col1), each = length(newDF[,1])/length(workers)), ]
+col1 = col1$config
+col1 = as.data.frame(unnest(col1, all_of(config)))
+col1 <- col1[, !sapply(col1, function(x) all(is.na(x) | is.null(x) | (is.list(x) && length(x) == 0)))]
+names(col1) = paste("config:", names(col1), sep = "")
+newDF = cbind(newDF, col1)
 
 # Set correct class
 for (i in 1:length(newDF[1,])) {
-  newDF[,i] = as(newDF[,i], type[i])
-}
-
-# Get config
-if (config[1] != FALSE){
-for (i in 1:length(config)) {
-  col1 = dplyr::filter(df, plugin == "store_config_data")
-  col1 = data.frame(rep(col1$config[[config[i]]], each = length(newDF[,1])/length(workers)))
-  colnames(col1) = config[i]
-  newDF = cbind(newDF, col1)
-}
+  testDF <- newDF[,i]
+  test = grepl("^[0-9]+$", testDF)
+  if (all(test == TRUE)) newDF[,i] = as.integer(newDF[,i])
+  if (all(test == FALSE)) newDF[,i] = as.character(newDF[,i])
 }
 
 # Save new df
@@ -156,5 +97,4 @@ saveRDS(newDF, filename[1])
 }
 
 return(newDF)
-
 }
