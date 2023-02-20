@@ -30,6 +30,7 @@ jatos2r = function(
                            "integer",
                            "integer",
                            "integer"),
+                  config = c("inputStart", "stimulusDuration"),
                   output_raw = TRUE,
                   output_clean = TRUE,
                   output_background = TRUE)
@@ -136,6 +137,16 @@ colnames(newDF) = col_name
 # Set correct class
 for (i in 1:length(newDF[1,])) {
   newDF[,i] = as(newDF[,i], type[i])
+}
+
+# Get config
+if (config[1] != FALSE){
+for (i in 1:length(config)) {
+  col1 = dplyr::filter(df, plugin == "store_config_data")
+  col1 = data.frame(rep(col1$config[[config[i]]], each = length(newDF)/length(workers)))
+  colnames(col1) = config[i]
+  newDF = cbind(newDF, col1)
+}
 }
 
 # Save new df
