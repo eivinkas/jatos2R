@@ -143,7 +143,7 @@ for (i in 1:length(newDF[1,])) {
 if (config[1] != FALSE){
 for (i in 1:length(config)) {
   col1 = dplyr::filter(df, plugin == "store_config_data")
-  col1 = data.frame(rep(col1$config[[config[i]]], each = length(newDF)/length(workers)))
+  col1 = data.frame(rep(col1$config[[config[i]]], each = length(newDF[,1])/length(workers)))
   colnames(col1) = config[i]
   newDF = cbind(newDF, col1)
 }
