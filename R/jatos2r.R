@@ -18,7 +18,7 @@ jatos2r = function(
                    'store_config_data'),
     col_name = list(c('all'),
                     'all'),
-    allow_duplicates = c('rt', 'time_elapsed'),
+    allow_duplicates = c('rt', 'time_elapsed', 'response'),
     output_raw = TRUE,
     output_clean = TRUE)
 
