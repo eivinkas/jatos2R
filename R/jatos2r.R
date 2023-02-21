@@ -11,9 +11,7 @@
 jatos2r = function(
     data = "dat.txt",
     filename = c("dat1.rds",
-                 "dat1.csv",
-                 "backGr.rds",
-                 "backGr.csv"),
+                 "dat1.csv"),
     from_col = c('trialName',
                  'plugin'),
     trial_name = list(c('all'),
@@ -22,8 +20,7 @@ jatos2r = function(
                     'all'),
     allow_duplicates = c('rt', 'time_elapsed'),
     output_raw = TRUE,
-    output_clean = TRUE,
-    output_background = TRUE)
+    output_clean = TRUE)
 
 {
 
