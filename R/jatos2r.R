@@ -15,13 +15,12 @@ jatos2r = function(
     from_col = c('trialName',
                  'plugin'),
     trial_name = list(c('all'),
-                   'store_config_data'),
+                      'store_config_data'),
     col_name = list(c('all'),
                     'all'),
     allow_duplicates = c('rt', 'time_elapsed', 'response'),
     output_raw = TRUE,
     output_clean = TRUE)
-
 {
 
   library(jsonlite)
@@ -114,7 +113,7 @@ jatos2r = function(
 
       for (i in 1:length(trial_name[[j]])) {
         col1 = dplyr::filter(df, !!sym(from_col[j]) == trial_name[[j]][i])
-        if (trial_name[[j]] != 'store_config_data') col1 = col1[,(names(col1) != 'config')]
+        if (trial_name[[j]][1] != 'store_config_data') col1 = col1[,(names(col1) != 'config')]
         dummyDF = as.data.frame(col1)
         dummyDF <- dummyDF[, !sapply(dummyDF, function(x) all(is.na(x) | is.null(x) | (is.list(x) && length(x) == 0)))]
 
