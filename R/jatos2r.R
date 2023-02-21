@@ -159,11 +159,18 @@ jatos2r = function(
     }
   }
 
+  # Fix class
+  for (i in 1:length(newDF[1,])) {
+    test1 = grepl("^[0-9]+$", newDF[,i])
+    if (all(test1) == TRUE) newDF[,i] = as.integer(newDF[,i])
+  }
+
   # Save new df
   if (output_clean == TRUE) {
     write.csv(newDF, file = filename[2], row.names = FALSE)
     saveRDS(newDF, filename[1])
   }
 
+  return(newDF)
 
 }
