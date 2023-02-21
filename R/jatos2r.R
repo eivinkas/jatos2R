@@ -9,92 +9,161 @@
 #' @export
 
 jatos2r = function(
-                  data = "dat.txt",
-                  filename = c("dat1.rds", "dat1.csv",
-                               "backGr.rds", "backGr.csv"),
-                  filterCol = NULL,
-                  filterID = NULL,
-                  getCol = NULL,
-                  output_raw = FALSE,
-                  output_clean = FALSE,
-                  output_background = FALSE)
+    data = "dat.txt",
+    filename = c("dat1.rds",
+                 "dat1.csv",
+                 "backGr.rds",
+                 "backGr.csv"),
+    from_col = c('trialName',
+                 'plugin'),
+    trial_name = list(c('all'),
+                   'store_config_data'),
+    col_name = list(c('all'),
+                    'all'),
+    allow_duplicates = c('rt', 'time_elapsed'),
+    output_raw = TRUE,
+    output_clean = TRUE,
+    output_background = TRUE)
 
 {
 
-library(jsonlite)
-library(dplyr)
-library(tidyr)
+  library(jsonlite)
+  library(dplyr)
 
-# Make raw data frame
-text_data <- readLines(data, warn = FALSE)
-text_data <- paste0(text_data, collapse = "")
-new_data <- gsub("][", ",", text_data, fixed = TRUE)
-json_data <- fromJSON(new_data)
-df <- as.data.frame(json_data)
+  # Make raw data frame
+  text_data <- readLines(data, warn = FALSE)
+  text_data <- paste0(text_data, collapse = "")
+  new_data <- gsub("][", ",", text_data, fixed = TRUE)
+  json_data <- fromJSON(new_data)
+  df <- as.data.frame(json_data)
 
-# Save raw data
-if (output_raw == TRUE){
-  write.csv(df, file = paste("raw_", filename[2], sep = ""), row.names = FALSE)
-  saveRDS(df, paste("raw_", filename[1], sep = ""))
-}
+  # Save raw data
+  if (output_raw == TRUE){
+    write.csv(df, file = paste("raw_", filename[2], sep = ""), row.names = FALSE)
+    saveRDS(df, paste("raw_", filename[1], sep = ""))
+  }
 
-# Get worker IDs
-workers = unique(df$workerID)
-workers = workers[!is.na(workers)]
-workers = workers[workers != "0"]
+  # Record every column that is added
+  colRec = NULL
 
-# Get col names
-columnID = 'trialName'
+  # Make vector of all elements
+  if (trial_name[[1]][1] == 'all') {
+    trial_name[[1]] = unique(df[,names(df) == from_col[1]])[!is.na(unique(df[,names(df) == from_col[1]]))]
+  }
 
-# Get trial Names
-trial_name = unique(df[[columnID[1]]])
-trial_name = trial_name[!is.na(trial_name)]
+  # Make df for first element
+  if (col_name[[1]][1] != 'all') {
+    col1 = dplyr::select(col1, col_name[[1]])
+  }
+  col1 = dplyr::filter(df, !!sym(from_col[1]) == trial_name[[1]][1])
+  col1 = col1[,(names(col1) != 'config')]
 
-# Check if data is 1 per workerID
-singleDat = NULL
-workerDF = dplyr::filter(df, workerID == workers[1])
-for (i in 1:length(trial_name)) {
-  testForSingle = length(dplyr::filter(workerDF, trialName == trial_name[i])[,1])
-  if (testForSingle == 1) {
-    singleDat = c(singleDat, 1)
-  } else {singleDat = c(singleDat, 0)
+  newDF = as.data.frame(col1)
+  newDF <- newDF[, !sapply(newDF, function(x) all(is.na(x) | is.null(x) | (is.list(x) && length(x) == 0)))]
+  colRec = c(colRec, names(newDF))
+  for (k in 1:length(names(newDF))) names(newDF)[k] = paste(trial_name[[1]][1], ':', names(newDF)[k], sep="")
+
+
+  # Add data for all the other elements
+  if (length(trial_name[[1]]) > 1) {
+    for (i in 2:length(trial_name[[1]])) {
+      col1 = dplyr::filter(df, !!sym(from_col[1]) == trial_name[[1]][i])
+      col1 = col1[,(names(col1) != 'config')]
+      dummyDF = as.data.frame(col1)
+      dummyDF <- dummyDF[, !sapply(dummyDF, function(x) all(is.na(x) | is.null(x) | (is.list(x) && length(x) == 0)))]
+
+      # check if column names are duplicated
+      delDuplicates = NULL
+      for (k in 1:length(names(dummyDF))) {
+        if (names(dummyDF)[k] %in% colRec) {
+          if ((names(dummyDF)[k] %in% allow_duplicates) == FALSE) delDuplicates = c(delDuplicates, k)
+        }
+      }
+      for (k in 1:length(names(dummyDF))) names(dummyDF)[k] = paste(trial_name[[1]][i], ':', names(dummyDF)[k], sep="")
+
+      # Get columns
+      if (length(delDuplicates > 0)) dummyDF = dummyDF[,-delDuplicates]
+      cnames = names(dummyDF)
+
+      # Check length of new data
+      len1 = length(dummyDF[,1])
+
+      if (len1 == length(workers) && len1 < length(newDF[,1])) {
+        dummyDF = dummyDF[rep(seq_len(nrow(dummyDF)), each = length(newDF[,1])/length(workers)), ]
+      }
+
+      if (len1 > length(newDF[,1]) && length(newDF[,1]) == length(workers)) {
+        newDF = newDF[rep(seq_len(nrow(newDF)), each = length(dummyDF[,1])/length(workers)), ]
+      }
+
+      if (len1 != length(workers) && len1 != length(newDF[,1])) {
+        return ("Stopped : Column lengths do not match.")
+      }
+
+      dummyDF = as.data.frame(dummyDF)
+      names(dummyDF) = cnames
+
+      newDF = cbind(newDF, dummyDF)
+
+      }
+  }
+
+  if (length(from_col) > 1){
+    for (j in 2:length(from_col)) {
+
+      if (trial_name[[j]][1] == 'all') {
+        trial_name[[j]] = unique(df[,names(df) == from_col[j]])[!is.na(unique(df[,names(df) == from_col[j]]))]
+      }
+
+      for (i in 1:length(trial_name[[j]])) {
+        col1 = dplyr::filter(df, !!sym(from_col[j]) == trial_name[[j]][i])
+        if (trial_name[[j]] != 'store_config_data') col1 = col1[,(names(col1) != 'config')]
+        dummyDF = as.data.frame(col1)
+        dummyDF <- dummyDF[, !sapply(dummyDF, function(x) all(is.na(x) | is.null(x) | (is.list(x) && length(x) == 0)))]
+
+        # check if column names are duplicated
+        delDuplicates = NULL
+        for (k in 1:length(names(dummyDF))) {
+          if (names(dummyDF)[k] %in% colRec) {
+            if ((names(dummyDF)[k] %in% allow_duplicates) == FALSE) delDuplicates = c(delDuplicates, k)
+          }
+        }
+        for (k in 1:length(names(dummyDF))) names(dummyDF)[k] = paste(trial_name[[j]][i], ':', names(dummyDF)[k], sep="")
+
+
+        # Get columns
+        if (length(delDuplicates > 0)) dummyDF = dummyDF[,-delDuplicates]
+        cnames = names(dummyDF)
+
+        # Check length of new data
+        len1 = length(dummyDF[,1])
+
+        if (len1 == length(workers) && len1 < length(newDF[,1])) {
+          dummyDF = dummyDF[rep(seq_len(nrow(dummyDF)), each = length(newDF[,1])/length(workers)), ]
+        }
+
+        if (len1 > length(newDF[,1]) && length(newDF[,1]) == length(workers)) {
+          newDF = newDF[rep(seq_len(nrow(newDF)), each = length(dummyDF[,1])/length(workers)), ]
+        }
+
+        if (len1 != length(workers) && len1 != length(newDF[,1])) {
+          return ("Stopped : Column lengths do not match.")
+        }
+
+        dummyDF = as.data.frame(dummyDF)
+        names(dummyDF) = cnames
+
+        newDF = cbind(newDF, dummyDF)
+
+      }
     }
-}
+  }
 
-# DF for repeating responses
-trial_name_repeat = trial_name[singleDat == 0]
+  # Save new df
+  if (output_clean == TRUE) {
+    write.csv(newDF, file = filename[2], row.names = FALSE)
+    saveRDS(newDF, filename[1])
+  }
 
-# DF for single responses
-trial_name_single = trial_name[singleDat == 1]
 
-# Get new DF
-col1 = dplyr::filter(df, trialName == trial_name_repeat[1])
-col1 <- col1[, !sapply(col1, function(x) all(is.na(x) | is.null(x) | (is.list(x) && length(x) == 0)))]
-
-# Unlist config
-col1 = col1[,colnames(col1) != 'config']
-newDF = data.frame(col1)
-col1 = dplyr::filter(df, plugin == 'store_config_data')
-col1 = col1[rep(row.names(col1), each = length(newDF[,1])/length(workers)), ]
-col1 = col1$config
-col1 = as.data.frame(unnest(col1, all_of(config)))
-col1 <- col1[, !sapply(col1, function(x) all(is.na(x) | is.null(x) | (is.list(x) && length(x) == 0)))]
-names(col1) = paste("config:", names(col1), sep = "")
-newDF = cbind(newDF, col1)
-
-# Set correct class
-for (i in 1:length(newDF[1,])) {
-  testDF <- newDF[,i]
-  test = grepl("^[0-9]+$", testDF)
-  if (all(test == TRUE)) newDF[,i] = as.integer(newDF[,i])
-  if (all(test == FALSE)) newDF[,i] = as.character(newDF[,i])
-}
-
-# Save new df
-if (output_clean == TRUE) {
-write.csv(newDF, file = filename[2], row.names = FALSE)
-saveRDS(newDF, filename[1])
-}
-
-return(newDF)
 }
