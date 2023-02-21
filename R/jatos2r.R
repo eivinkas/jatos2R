@@ -85,15 +85,15 @@ jatos2r = function(
       # Check length of new data
       len1 = length(dummyDF[,1])
 
-      if (len1 == length(workers) && len1 < length(newDF[,1])) {
-        dummyDF = dummyDF[rep(seq_len(nrow(dummyDF)), each = length(newDF[,1])/length(workers)), ]
+      if (len1 < length(newDF[,1])) {
+        dummyDF = dummyDF[rep(seq_len(nrow(dummyDF)), each = length(newDF[,1])/length(dummyDF[,1])), ]
       }
 
-      if (len1 > length(newDF[,1]) && length(newDF[,1]) == length(workers)) {
-        newDF = newDF[rep(seq_len(nrow(newDF)), each = length(dummyDF[,1])/length(workers)), ]
+      if (len1 > length(newDF[,1])) {
+        newDF = newDF[rep(seq_len(nrow(newDF)), each = length(dummyDF[,1])/length(newDF[,1])), ]
       }
 
-      if (len1 != length(workers) && len1 != length(newDF[,1])) {
+      if (length(dummyDF[,1]) != length(newDF[,1])) {
         return ("Stopped : Column lengths do not match.")
       }
 
@@ -135,15 +135,15 @@ jatos2r = function(
         # Check length of new data
         len1 = length(dummyDF[,1])
 
-        if (len1 == length(workers) && len1 < length(newDF[,1])) {
-          dummyDF = dummyDF[rep(seq_len(nrow(dummyDF)), each = length(newDF[,1])/length(workers)), ]
+        if (len1 < length(newDF[,1])) {
+          dummyDF = dummyDF[rep(seq_len(nrow(dummyDF)), each = length(newDF[,1])/length(dummyDF[,1])), ]
         }
 
-        if (len1 > length(newDF[,1]) && length(newDF[,1]) == length(workers)) {
-          newDF = newDF[rep(seq_len(nrow(newDF)), each = length(dummyDF[,1])/length(workers)), ]
+        if (len1 > length(newDF[,1])) {
+          newDF = newDF[rep(seq_len(nrow(newDF)), each = length(dummyDF[,1])/length(newDF[,1])), ]
         }
 
-        if (len1 != length(workers) && len1 != length(newDF[,1])) {
+        if (length(newDF[,1]) !=  length(dummyDF[,1])) {
           return ("Stopped : Column lengths do not match.")
         }
 
