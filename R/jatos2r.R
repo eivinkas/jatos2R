@@ -10,8 +10,7 @@
 
 jatos2r = function(
     data = "dat.txt",
-    filename = c("dat1.rds",
-                 "dat1.csv"),
+    filename = c("dat1.rds"),
     from_col = c('trialName',
                  'plugin'),
     trial_name = list(c('all'),
@@ -35,7 +34,6 @@ jatos2r = function(
 
   # Save raw data
   if (output_raw == TRUE){
-    write.csv(df, file = paste("raw_", filename[2], sep = ""), row.names = FALSE)
     saveRDS(df, paste("raw_", filename[1], sep = ""))
   }
 
@@ -163,7 +161,6 @@ jatos2r = function(
 
   # Save new df
   if (output_clean == TRUE) {
-    write.csv(newDF, file = filename[2], row.names = FALSE)
     saveRDS(newDF, filename[1])
   }
 
