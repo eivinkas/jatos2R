@@ -6,16 +6,13 @@
 \usage{
 jatos2r(
   data = "dat.txt",
+  filename = c("dat1.rds"),
+  from_col = c("trialName", "plugin"),
+  trial_name = list(c("all"), "store_config_data"),
+  col_name = list(c("all"), "all"),
+  allow_duplicates = c("rt", "time_elapsed", "response"),
   output_raw = TRUE,
-  output_clean = TRUE,
-  output_background = TRUE,
-  filename = c("dat1.rds", "dat1.csv"),
-  trial_name = c("dotMaskTrial", "dotMaskTrial", "dotMaskTrial", "dotMaskTrial",
-    "textResponse", "textResponse", "multipleChoice"),
-  col_name = c("workerID", "numerosity", "imageNumber", "numGroups", "response", "rt",
-    "response"),
-  type = c("character", "integer", "character", "integer", "integer", "integer",
-    "character")
+  output_clean = TRUE
 )
 }
 \arguments{
