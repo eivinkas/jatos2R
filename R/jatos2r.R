@@ -18,6 +18,7 @@ jatos2r = function(
     col_name = list(c('all'),
                     'all'),
     allow_duplicates = c('rt', 'time_elapsed', 'response'),
+    delete_trial_index = NULL,
     output_raw = TRUE,
     output_clean = TRUE)
 {
@@ -31,6 +32,11 @@ jatos2r = function(
   new_data <- gsub("][", ",", text_data, fixed = TRUE)
   json_data <- fromJSON(new_data)
   df <- as.data.frame(json_data)
+    
+  # Remove rows from delete_trial_index
+  if (length(delete_trial_index > 0)) {
+    df = df[((df$trial_index %in% delete_trial_index == FALSE),]  
+    }
 
   # Save raw data
   if (output_raw == TRUE){
